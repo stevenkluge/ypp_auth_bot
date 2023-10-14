@@ -1,12 +1,13 @@
 {
     "compilerOptions": {
-      "module": "commonjs",
+      "module": "NodeNext",
       "esModuleInterop": true,
-      "target": "es6",
-      "moduleResolution": "node",
+      "target": "ES2022",
+      "moduleResolution": "NodeNext",
       "sourceMap": false,
+      "rootDir": "src",
       "outDir": "build"
     },
-    "lib": ["es2015"]
+    "lib": ["ES2022"]
   }
   
