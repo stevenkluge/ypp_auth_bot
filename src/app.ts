@@ -2,13 +2,12 @@ import 'dotenv/config'
 import { Client, Events, GatewayIntentBits } from 'discord.js'
 import  * as sqlite from 'sqlite3'
 import { logger } from './logger'
-import { fetchPirateCrewRank, fetchTrophyCollectionBoxNames } from './yowebScraper'
+import { fetchCrewRoster, fetchPirateCrewRank, fetchTrophyCollectionBoxNames } from './yowebScraper'
 
 logger.info('### Starting YPP Pirate Verifier Bot ###')
 
 // TODO remove this when finished testing
-fetchTrophyCollectionBoxNames('Swampboaty').then(crewInfo => {
-    console.log(crewInfo)
+fetchCrewRoster('5036718').then(crewRoster => {
     process.exit(0);
 })
 
