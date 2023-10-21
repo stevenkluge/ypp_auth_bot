@@ -2,9 +2,17 @@ import 'dotenv/config'
 import { Client, Events, GatewayIntentBits } from 'discord.js'
 import  * as sqlite from 'sqlite3'
 import { logger } from './logger'
+import { getPirateCrewRank } from './yowebScraper'
 
 logger.info('Starting YPP Pirate Verifier Bot')
 
+// TODO remove this when finished testing
+getPirateCrewRank('Swampboaty').then(crewInfo => {
+    console.log(crewInfo)
+    process.exit(0);
+})
+
+process.stdin.resume();
 // initialize database connection and export
 export let database = new sqlite.Database(process.env.DATABASE_FILE, (err) => {
     if(err === null) {
@@ -21,7 +29,7 @@ export let database = new sqlite.Database(process.env.DATABASE_FILE, (err) => {
                     } else {
                         logger.error(`Encountered an error trying to close database connection: ${err}`)
                     }
-                    process.exit(0);
+                    process.exit(0)
                 })
                 
             })

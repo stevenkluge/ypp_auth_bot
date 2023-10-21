@@ -3,3 +3,5 @@ build
 .gitsecret/keys/random_seed
 !*.secret
 .env
+runtime.log
+pirates.sqlite

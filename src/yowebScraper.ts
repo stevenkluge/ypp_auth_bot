@@ -28,26 +28,19 @@ export const getPirateCrewRank = async (pirate: string): Promise<{ crew: string,
         const document = await fetchDocument(`http://emerald.puzzlepirates.com/yoweb/pirate.wm?target=${pirate}`)
         const $ = cheerio.load(document)
         const crewInfoElements = $('body > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(1) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(2) > font:nth-child(1)')
-        
-        // verify we scraped the correct text, the second element is the same for any character
-        if(crewInfoElements.text().split(' ')[1] === 'of the crew') {
-            const rank = crewInfoElements.text().split(' ')[0]
-            const crew = crewInfoElements.children('a').attr('href').match(/\d{7}/)[0]
+        const rank = crewInfoElements.text().match(/^.*(?= of the crew)/)[0]
+        const crew = crewInfoElements.find('a').attr('href').match(/(?<=crewid=)\d{7}/)[0]
 
+        if(!!crew && !!rank) {
             return {crew, rank}
-
         } else {
             logger.error(`Scraped the wrong data from yoweb while looking up ${pirate}. Found: ${crewInfoElements.text()}`)
             return null
         }
-        //example address http://emerald.puzzlepirates.com/yoweb/crew/info.wm?crewid=5036718&classic=$classic <- match 5036718
 
     } catch(err) {
         logger.error(err)
     }
-
-
-
 }
 
 const fetchDocument = async (resourceUrl: string) => {
