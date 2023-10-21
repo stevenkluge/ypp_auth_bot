@@ -4,4 +4,4 @@ build
 !*.secret
 .env
 runtime.log
-pirates.sqlite
+pirates.sqlite3
