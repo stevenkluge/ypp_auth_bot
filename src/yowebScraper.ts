@@ -22,14 +22,24 @@ swampyy
 
 */
 
-export const getPirateCrewRank = async (pirate: string): Promise<{ crew: string, rank: string }> {
+export const getPirateCrewRank = async (pirate: string): Promise<{ crew: string, rank: string } | null> => {
 
     try {
         const document = await fetchDocument(`http://emerald.puzzlepirates.com/yoweb/pirate.wm?target=${pirate}`)
         const $ = cheerio.load(document)
-        const crewInfo = $('body > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(1) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(2) > font:nth-child(1)')
-        // TODO get the first <b> tag for rank, second <b> tag get the child <a> tag href value then regex match the id from address
-        const 
+        const crewInfoElements = $('body > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(1) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(1) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(2) > font:nth-child(1)')
+        
+        // verify we scraped the correct text, the second element is the same for any character
+        if(crewInfoElements.text().split(' ')[1] === 'of the crew') {
+            const rank = crewInfoElements.text().split(' ')[0]
+            const crew = crewInfoElements.children('a').attr('href').match(/\d{7}/)[0]
+
+            return {crew, rank}
+
+        } else {
+            logger.error(`Scraped the wrong data from yoweb while looking up ${pirate}. Found: ${crewInfoElements.text()}`)
+            return null
+        }
         //example address http://emerald.puzzlepirates.com/yoweb/crew/info.wm?crewid=5036718&classic=$classic <- match 5036718
 
     } catch(err) {
