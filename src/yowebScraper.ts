@@ -1,7 +1,6 @@
 import * as cheerio from 'cheerio'
 import { logger } from './logger'
 import 'dotenv/config'
-import { database } from './app'
 
 /*
 How the scraper will be used:
@@ -51,14 +50,14 @@ export const fetchPirateCrewRank = async (pirate: string): Promise<{ status: Scr
                 rank,
             }
         } else if( $('body > center:nth-child(1)').text().trim() === "Arr! We have heard no tell of that pirate around these parts."){
-            logger.info(`Pirate not found | query: ${pirate}`)
+            logger.warn(`Pirate not found | query: ${pirate}`)
             return {
                 status: ScraperStatus.NOT_FOUND,
                 crew: null,
                 rank: null,
             }
         } else {
-            logger.info(`Pirate either doesn't have a crew, or there is something wrong with the scraper | query: ${pirate}`)
+            logger.warn(`Pirate either doesn't have a crew, or there is something wrong with the scraper | query: ${pirate}`)
             return {
                 status: ScraperStatus.NO_CREW,
                 crew: null,
@@ -66,7 +65,7 @@ export const fetchPirateCrewRank = async (pirate: string): Promise<{ status: Scr
             }
         }
     } catch(err) {
-        logger.error(`Error while attempting to retrieve pirate page for: ${pirate} | ${err}`)
+        logger.error(`Error while attempting to retrieve pirate page | query: ${pirate} | ${err}`)
         return null
     }
 }
@@ -81,11 +80,11 @@ export const fetchTrophyCollectionBoxNames = async (pirate: string): Promise<Arr
             logger.info(`Found trophy collection box titles | query: ${pirate}`)
             return trophyCollectionStrings
         } else {
-            logger.info(`Could not find trophy collection box titles | query: ${pirate}`)
+            logger.warn(`Could not find trophy collection box titles | query: ${pirate}`)
             return null
         }
     } catch(err) {
-        logger.error(`Error while attempting to retrieve trophy page for: ${pirate} | ${err}`)
+        logger.error(`Error while attempting to retrieve trophy page | query: ${pirate} | ${err}`)
         return null
     }
 }
@@ -104,23 +103,76 @@ export const fetchCrewRoster = async (crew: string): Promise<RosterType | null> 
         }
 
         // active
-        const rosterString = $active('body > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(3) > td:nth-child(3) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(3) > table:nth-child(1)')
+        const activeRoster = $active('body > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(3) > td:nth-child(3) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(2) > td:nth-child(3) > table:nth-child(1)')
             .text()
             // convert to space-separated string of values
             .replace(/\s+/g, ' ')
-            // Discard Jobbing Pirates
-            .split('Jobbing Pirate')[0]
+            // discard Jobbing Pirates
+            .split(' Jobbing Pirate')[0]
+            .trim()
+            // convert officer ranks + Cabin Person to single word, i.e. Fleet Officer becomes FleetOfficer
+            .replace(/(?<=Senior|Fleet|Cabin)\s(?=Officer|Person)/g, '')
+            // convert rest to array of strings
+            .split(' ')
 
-        /*
-        TODO: write a while loop that iterates through the above rosterString.toArray()
-        use a switch to check for the rank titles
-        and define a handle that references the crewRoster property
-        writing to the default case pushes to the active crewRoster handle.
-        If this technique works, then combine the active and dormant member strings so long that rank precedes name
-        */
-        return null
+        // dormant
+        const dormantRoster = $dormant('center')
+            .text()
+            // convert to space-separated string of values
+            .replace(/\s+/g, ' ')
+            .trim()
+            // remove everything before the list of members
+            .replace(/(^.* Dormant members )/,'')
+            // remove the trailing string
+            .replace(/( Back to crew info$)/,'')
+            // convert officer ranks + Cabin Person to single word, i.e. Fleet Officer becomes FleetOfficer
+            .replace(/(?<=Senior|Fleet|Cabin)\s(?=Officer|Person)/g, '')
+            .split(' ')
+
+        let currentRankArray: string[]
+
+        // If a rank string is detected, set the currentRank to the corresponding crewRoster property reference, otherwise append the string to currentRank
+        for(const token of [...activeRoster, ...dormantRoster]){ 
+            switch(token) {
+                case 'Captain':
+                    currentRankArray = crewRoster.captain
+                    break;
+                case 'SeniorOfficer':
+                    currentRankArray = crewRoster.seniorOfficer
+                    break;
+                case 'FleetOfficer':
+                    currentRankArray = crewRoster.fleetOfficer
+                    break;
+                case 'Officer':
+                    currentRankArray = crewRoster.officer
+                    break;
+                case 'Pirate':
+                    currentRankArray = crewRoster.pirate
+                    break;
+                case 'CabinPerson':
+                    currentRankArray = crewRoster.cabinPerson
+                    break;
+                default:
+                    currentRankArray.push(token)
+                    break;
+            }
+        }
+
+        // crew needs to have at least one member, if not then we made a mistake somewhere
+        if(crewRoster.cabinPerson.length +
+            crewRoster.pirate.length +
+            crewRoster.officer.length +
+            crewRoster.fleetOfficer.length +
+            crewRoster.seniorOfficer.length +
+            crewRoster.captain.length > 0) {
+                logger.info(`Found crew roster | query: ${crew}`)
+                return crewRoster
+            } else {
+                logger.warn(`Could not find crew roster | query: ${crew}`)
+                return null
+            }
     } catch(err) {
-
+        logger.error(`Error while attempting to retrieve crew page | query: ${crew} | ${err}`)
     }
 }
 

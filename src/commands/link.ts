@@ -1,4 +1,7 @@
-import { SlashCommandBuilder } from 'discord.js'
+const { ChannelType, ChatInputCommandInteraction, SlashCommandBuilder } = require('discord.js')
+// Convert all of this to requires and module exports
+import { databaseInstance } from '../app';
+import { UsersRecord, getRecordQuery } from '../database';
 
 export const link = {
     data: new SlashCommandBuilder()
@@ -35,7 +38,7 @@ export const link = {
                 .setName('refresh')
                 .setDescription('Fetches fresh crew information from yoweb')
             ),
-    async execute(interaction) {
+    async execute(interaction: ChatInputCommandInteraction) {
         switch(interaction.options.getSubcommand()) {
             case "pirate":
                 break;
@@ -44,6 +47,13 @@ export const link = {
             case "reset":
                 break;
             case "status":
+                // Send the "So-and-so is thinking..." message
+                //await interaction.deferReply({ ephemeral: true })
+                await interaction.reply('Status called')
+                let userStatus: { pirate_name: string, status: string} | undefined;
+                //await databaseInstance.get(getRecordQuery(interaction.user.tag), (err, row: UsersRecord) => {
+                //    return
+                //})
                 break;
             case "refresh":
                 break;
