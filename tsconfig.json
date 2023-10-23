@@ -1,13 +1,12 @@
 {
-    "compilerOptions": {
-      "module": "NodeNext",
-      "esModuleInterop": true,
-      "target": "ES2022",
-      "moduleResolution": "NodeNext",
-      "sourceMap": false,
-      "rootDir": "src",
-      "outDir": "build"
-    },
-    "lib": ["ES2022"]
-  }
-  
+  "compilerOptions": {
+    "module": "NodeNext",
+    "esModuleInterop": true,
+    "target": "ES2022",
+    "moduleResolution": "NodeNext",
+    "sourceMap": false,
+    "rootDir": "src",
+    "outDir": "build"
+  },
+  "lib": ["ES2022"]
+}

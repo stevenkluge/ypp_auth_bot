@@ -7,6 +7,8 @@
     "start": "tsc && node build/app.js",
     "build": "tsc",
     "clean": "rm -rf build/**",
+    "deploy-commands-dev": "node build/scripts/deploy-commands.js dev",
+    "deploy-commands-prod": "node build/scripts/deploy-commands.js prod",
     "lint": "eslint src/ --fix && prettier --write",
     "test": "echo \"Error: no test specified\" && exit 1",
     "postinstall": "git config core.hooksPath ./git_hooks"
@@ -14,6 +16,7 @@
   "author": "Steven Kluge",
   "license": "GPL-3.0-or-later",
   "devDependencies": {
+    "@types/node": "^20.8.7",
     "@typescript-eslint/eslint-plugin": "^6.7.5",
     "@typescript-eslint/parser": "^6.7.5",
     "eslint": "^8.51.0",
